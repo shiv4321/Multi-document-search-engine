@@ -89,6 +89,10 @@ def main():
     with col1:
         search_button = st.button("🔍 Search", type="primary", use_container_width=True)
     
+    # Initialize session state for showing full text
+    if 'show_full' not in st.session_state:
+        st.session_state.show_full = set()
+    
     # Search
     if search_button and query:
         with st.spinner("Searching..."):
@@ -100,7 +104,9 @@ def main():
         
         # Display results
         for i, result in enumerate(results, 1):
-            with st.expander(f"**{i}. {result['doc_id']}** (Score: {result['score']:.3f})", expanded=(i<=3)):
+            doc_id = result['doc_id']
+            
+            with st.expander(f"**{i}. {doc_id}** (Score: {result['score']:.3f})", expanded=(i<=3)):
                 st.markdown(f"**Preview:** {result['preview']}")
                 
                 st.markdown("---")
@@ -116,10 +122,20 @@ def main():
                 if exp['keyword_overlap']:
                     st.markdown(f"**Overlapping keywords:** {', '.join(exp['keyword_overlap'])}")
                 
-                # Full text
-                if st.button(f"Show full text", key=f"show_{result['doc_id']}"):
-                    full_text = search_engine.get_document(result['doc_id'])
-                    st.text_area("Full Document", full_text, height=300)
+                # Full text toggle button
+                button_label = "Hide full text" if doc_id in st.session_state.show_full else "Show full text"
+                
+                if st.button(button_label, key=f"btn_{doc_id}"):
+                    if doc_id in st.session_state.show_full:
+                        st.session_state.show_full.remove(doc_id)
+                    else:
+                        st.session_state.show_full.add(doc_id)
+                    st.rerun()
+                
+                # Display full text if toggled on
+                if doc_id in st.session_state.show_full:
+                    full_text = search_engine.get_document(doc_id)
+                    st.text_area("Full Document", full_text, height=300, key=f"text_{doc_id}")
     
     elif search_button:
         st.warning("Please enter a search query")
