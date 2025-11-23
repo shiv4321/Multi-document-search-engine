@@ -19,19 +19,32 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from src.search_engine import SearchEngine
 
+# Auto-download data if missing
+def setup_data():
+    """Download data if not exists"""
+    docs_dir = Path("data/docs")
+    if not docs_dir.exists() or len(list(docs_dir.glob("*.txt"))) == 0:
+        st.info("📥 First run detected! Downloading dataset... (~30 seconds)")
+        
+        import subprocess
+        result = subprocess.run([sys.executable, "setup.py"], capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            st.error(f"Failed to download data: {result.stderr}")
+            st.stop()
+        
+        st.success("✅ Dataset downloaded!")
+
 # Initialize
 @st.cache_resource
 def load_search_engine():
     """Load and cache search engine"""
-    with st.spinner("Initializing search engine... This may take a minute on first run."):
+    setup_data()
+    
+    with st.spinner("🔄 Building search index... This takes ~1 minute on first run."):
         engine = SearchEngine()
-        
-        # Check if data exists
-        if not Path("data/docs").exists():
-            st.error("Data not found! Please run setup.py first.")
-            st.stop()
-        
         engine.build_index()
+    
     return engine
 
 # Main app
@@ -42,9 +55,9 @@ def main():
     # Load engine
     try:
         search_engine = load_search_engine()
+        st.success("✅ Search engine ready!")
     except Exception as e:
-        st.error(f"Error loading search engine: {e}")
-        st.info("Make sure you've run setup.py to download the dataset")
+        st.error(f"❌ Error: {e}")
         st.stop()
     
     # Sidebar
