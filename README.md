@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 `# Multi-Document Embedding Search Engine
 
 ## Overview
@@ -106,3 +107,7 @@ Note: First run will download data and generate embeddings (~2 min)
 - Search query: <50ms
 - Cache hit: 0ms (instant)
 - Memory: ~100MB for 1000 docs`,
+=======
+# Multi-document-search-engine
+Search across multiple documents with ease fast!!!
+>>>>>>> f3d3e308b4415621db1e512c71780d2c246314b4
